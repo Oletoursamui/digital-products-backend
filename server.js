@@ -1,14 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const Stripe = require('stripe');
+const { Resend } = require('resend');
 
 const app = express();
 app.use(cors());
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
-
 
 // 🔥 WEBHOOK (ANTES de express.json)
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -34,9 +33,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     const productName = session.metadata?.productName || 'Producto digital';
     const downloadUrl = session.metadata?.downloadUrl || 'https://www.oletoursamui.com';
 
-    console.log('✅ PAGO DIGITAL CONFIRMADO');
-    console.log('Producto:', productName);
-    console.log('Email:', customerEmail);
+    console.log('✅ PAGO CONFIRMADO:', productName);
 
     try {
       await resend.emails.send({
@@ -46,19 +43,19 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
         html: `
         <div style="font-family: Arial; max-width:600px; margin:auto; padding:20px;">
           
-          <h2 style="color:#23a0ac;">Gracias por tu compra</h2>
+          <h2 style="color:#76c5cc;">Gracias por tu compra</h2>
 
-          <p>Tu producto digital ya está disponible:</p>
+          <p>Ya puedes acceder a tu producto:</p>
 
           <p><strong>${productName}</strong></p>
 
           <a href="${downloadUrl}" 
-             style="display:inline-block; margin:20px 0; padding:12px 20px; background:#23a0ac; color:#fff; border-radius:8px; text-decoration:none;">
+             style="display:inline-block; margin:20px 0; padding:14px 22px; background:#76c5cc; color:#fff; border-radius:8px; text-decoration:none;">
              Acceder a la descarga
           </a>
 
           <p style="font-size:13px; color:#666;">
-          Guarda este email por si necesitas acceder más tarde.
+          Guarda este email para acceder cuando quieras.
           </p>
 
         </div>
@@ -75,14 +72,12 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
   res.status(200).json({ received: true });
 });
 
-
 app.use(express.json());
 
-
-// 🔥 CREAR PAGO DIGITAL (GENÉRICO)
+// 🔥 CREAR PAGO (GENÉRICO MULTIPRODUCTO)
 app.post('/crear-pago-digital', async (req, res) => {
   try {
-    const { amount, productName, downloadUrl } = req.body;
+    const { amount, productName, downloadUrl, successUrl } = req.body;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -103,12 +98,12 @@ app.post('/crear-pago-digital', async (req, res) => {
       mode: 'payment',
 
       metadata: {
-        productName: productName,
-        downloadUrl: downloadUrl
+        productName,
+        downloadUrl
       },
 
-      success_url: 'https://www.oletoursamui.com/compra-confirmada',
-      cancel_url: 'https://www.oletoursamui.com/pago-cancelado'
+      success_url: successUrl,
+      cancel_url: 'https://www.oletoursamui.com/compra-cancelada'
     });
 
     res.json({ url: session.url });
@@ -119,9 +114,13 @@ app.post('/crear-pago-digital', async (req, res) => {
   }
 });
 
+// 🔥 WAKEUP ENDPOINT (para Render)
+app.get('/', (req, res) => {
+  res.send('Servidor activo');
+});
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log('Servidor digital corriendo en puerto', PORT);
+  console.log('Servidor corriendo en puerto', PORT);
 });
