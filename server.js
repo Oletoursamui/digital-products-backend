@@ -41,25 +41,33 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
         to: [customerEmail],
         subject: `Tu compra está lista: ${productName}`,
         html: `
-        <div style="font-family: Arial; max-width:600px; margin:auto; padding:20px;">
-          
-          <h2 style="color:#76c5cc;">Gracias por tu compra</h2>
+<div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; padding:20px; text-align:center;">
 
-          <p>Ya puedes acceder a tu producto:</p>
+  <!-- LOGO -->
+  <img src="https://primary.jwwb.nl/public/q/x/b/temp-rxsbzwvfehskyqcezfxp/ol-tours-3-high-dkf666.png?enable-io=true&crop=1%3A1&width=347" 
+       style="width:90px; margin-bottom:20px;">
 
-          <p><strong>${productName}</strong></p>
+  <!-- TITULO -->
+  <h2 style="margin-bottom:10px;">Tu ${productName} ya está listo</h2>
 
-          <a href="${downloadUrl}" 
-             style="display:inline-block; margin:20px 0; padding:14px 22px; background:#76c5cc; color:#fff; border-radius:8px; text-decoration:none;">
-             Acceder a la descarga
-          </a>
+  <!-- TEXTO -->
+  <p style="margin-bottom:20px;">
+    Accede ahora a tu <strong>${productName}</strong>
+  </p>
 
-          <p style="font-size:13px; color:#666;">
-          Guarda este email para acceder cuando quieras.
-          </p>
+  <!-- BOTÓN -->
+  <a href="${downloadUrl}" 
+     style="display:inline-block; padding:14px 24px; background:#76c5cc; color:#fff; text-decoration:none; border-radius:8px; font-weight:bold;">
+     Descargar ahora
+  </a>
 
-        </div>
-        `
+  <!-- TEXTO -->
+  <p style="font-size:13px; color:#777; margin-top:20px;">
+    Guarda este email para acceder cuando quieras.
+  </p>
+
+</div>
+`
       });
 
       console.log('📧 Email enviado');
@@ -114,7 +122,7 @@ app.post('/crear-pago-digital', async (req, res) => {
   }
 });
 
-// 🔥 WAKEUP ENDPOINT (para Render)
+// 🔥 WAKEUP ENDPOINT
 app.get('/', (req, res) => {
   res.send('Servidor activo');
 });
